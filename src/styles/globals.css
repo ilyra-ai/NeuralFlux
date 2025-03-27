@@ -1,0 +1,62 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --foreground-rgb: 0, 0, 0;
+  --background-rgb: 244, 245, 247;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --foreground-rgb: 255, 255, 255;
+    --background-start-rgb: 15, 23, 42;
+    --background-end-rgb: 30, 41, 59;
+  }
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background: rgb(var(--background-rgb));
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg;
+  }
+  
+  .btn-secondary {
+    @apply bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-6 rounded-lg;
+  }
+
+  .card {
+    @apply bg-white rounded-xl shadow-md p-6;
+  }
+} 
+
+/* Wallet Adapter 样式 */
+.wallet-adapter-button {
+  background-color: #512da8;
+  border: none;
+  border-radius: 6px;
+  color: #fff;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 600;
+  height: 42px;
+  padding: 0 20px;
+  transition: all 0.1s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.wallet-adapter-button:hover {
+  background-color: #4527a0;
+}
+
+.wallet-adapter-button:disabled {
+  background-color: #8e8e8e;
+  color: #c7c7c7;
+  cursor: not-allowed;
+} 

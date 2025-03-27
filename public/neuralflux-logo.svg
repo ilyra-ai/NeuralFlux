@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">
+  <defs>
+    <linearGradient id="gradient2" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#3B82F6" />
+      <stop offset="50%" stop-color="#8B5CF6" />
+      <stop offset="100%" stop-color="#EC4899" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect x="0" y="0" width="400" height="400" rx="60" fill="#0F172A" />
+  
+  <!-- Waveform Motion Lines -->
+  <path d="M50,200 C80,160 100,240 130,200 C160,160 180,240 210,200 C240,160 260,240 290,200 C320,160 340,240 370,200" 
+        fill="none" stroke="url(#gradient2)" stroke-width="6" stroke-linecap="round" />
+  
+  <!-- Video Frame Elements -->
+  <rect x="120" y="120" width="160" height="120" rx="10" fill="none" stroke="white" stroke-width="3" opacity="0.7" />
+  <line x1="120" y1="150" x2="280" y2="150" stroke="white" stroke-width="2" opacity="0.4" />
+  <circle cx="140" cy="135" r="5" fill="white" opacity="0.8" />
+  <circle cx="160" cy="135" r="5" fill="white" opacity="0.8" />
+  <circle cx="180" cy="135" r="5" fill="white" opacity="0.8" />
+  
+  <!-- Neural Nodes -->
+  <circle cx="170" cy="210" r="8" fill="#EC4899" />
+  <circle cx="200" cy="180" r="8" fill="#8B5CF6" />
+  <circle cx="230" cy="210" r="8" fill="#3B82F6" />
+  
+  <!-- Neural Connections -->
+  <line x1="170" y1="210" x2="200" y2="180" stroke="white" stroke-width="2" opacity="0.6" />
+  <line x1="230" y1="210" x2="200" y2="180" stroke="white" stroke-width="2" opacity="0.6" />
+</svg> 
