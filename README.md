@@ -69,4 +69,45 @@ Contributions of code, issue reports, or new feature suggestions are welcome! Pl
 
 ## License
 
-MIT 
+MIT
+
+## Recent Updates
+
+### DAO Page Wallet Connection Fix
+- Fixed the DAO page to properly connect with Phantom wallet
+- Integrated Solana Wallet Adapter for seamless wallet connectivity
+- Removed unnecessary balance display and staking functionality
+- Improved user interface for better wallet interaction
+
+## Features
+- AI video generation based on text prompts
+- NFT minting of AI-generated videos
+- Marketplace for trading video NFTs
+- DAO governance for platform decisions
+- FLUX token for platform utility and governance
+
+## Technology Stack
+- Next.js for frontend
+- Tailwind CSS for styling
+- Solana blockchain integration
+- Phantom wallet connectivity
+- AI model integration
+
+## Getting Started
+
+```bash
+# Install dependencies
+npm install
+
+# Run the development server
+npm run dev
+```
+
+Open [http://localhost:3003](http://localhost:3003) in your browser to see the application.
+
+## Project Structure
+- `/src/pages` - Main application pages
+- `/src/components` - Reusable UI components
+- `/src/web3` - Blockchain integration 
+- `/src/api` - API routes and services
+- `/public` - Static assets 
