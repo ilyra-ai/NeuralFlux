@@ -1,12 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
-import { useWallet } from '@solana/wallet-adapter-react';
-import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
+import { useWallet } from '@/web3/WalletProvider';
 import { generateVideo, getGenerationStatus, VideoGenerationParams, GenerationStatus } from '@/api/videoGeneration';
 import Link from 'next/link';
 import Layout from '@/components/Layout';
+import WalletDropdown from '@/components/WalletDropdown';
 
 export default function CreatePage() {
-  const { connected, publicKey } = useWallet();
+  const { connected, connectWallet, publicKey, isPhantomInstalled } = useWallet();
   const [prompt, setPrompt] = useState('');
   const [referenceImage, setReferenceImage] = useState<string | null>(null);
   const [duration, setDuration] = useState(5);
@@ -22,11 +22,11 @@ export default function CreatePage() {
   const statusIntervalRef = useRef<NodeJS.Timeout | null>(null);
   
   // Display the last 8 digits of wallet address
-  const truncatedAddress = publicKey ? `${publicKey.toString().slice(-8)}` : null;
+  const truncatedAddress = publicKey ? `${publicKey.slice(-8)}` : null;
   
   // Debug information
   useEffect(() => {
-    console.log("Wallet connection status:", { connected, publicKey: publicKey?.toString() });
+    console.log("Wallet connection status:", { connected, publicKey });
   }, [connected, publicKey]);
   
   // Handle image upload
@@ -41,7 +41,7 @@ export default function CreatePage() {
     reader.readAsDataURL(file);
   };
   
-  // Handle video generation
+  // Handle video search/fetch
   const handleGenerate = async () => {
     if (!connected || !publicKey) {
       alert('Please connect your wallet first');
@@ -66,7 +66,7 @@ export default function CreatePage() {
         fps
       };
       
-      // Call API to start video generation
+      // Call API to fetch a matching video
       const id = await generateVideo(params);
       setGenerationId(id);
       
@@ -90,16 +90,16 @@ export default function CreatePage() {
             setIsGenerating(false);
             
             if (statusData.status === 'completed') {
-              console.log('Video generation completed:', statusData.result);
+              console.log('Video fetch completed:', statusData.result);
             }
           }
         } catch (error) {
-          console.error('Error fetching generation status:', error);
+          console.error('Error fetching status:', error);
         }
-      }, 2000);
+      }, 1000);
     } catch (error) {
-      console.error('Error starting video generation:', error);
-      setError(`Generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      console.error('Error starting video fetch:', error);
+      setError(`Search failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
       setIsGenerating(false);
     }
   };
@@ -118,106 +118,128 @@ export default function CreatePage() {
     // Navigate to mint page with the generated video information
     window.location.href = `/mint?videoUrl=${encodeURIComponent(status?.result || '')}&prompt=${encodeURIComponent(prompt)}`;
   };
+
+  // Render wallet connection section
+  const renderWalletConnection = () => {
+    if (!isPhantomInstalled) {
+      return (
+        <div className="bg-yellow-50 dark:bg-yellow-900/20 p-6 rounded-lg mb-8 text-center">
+          <p className="mb-4">Phantom wallet extension is not installed. You need Phantom wallet to use the video search feature.</p>
+          <a 
+            href="https://phantom.app/download" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="bg-purple-600 hover:bg-purple-700 rounded-lg py-2 px-4 text-white font-bold"
+          >
+            Install Phantom Wallet
+          </a>
+          <p className="mt-2 text-xs text-gray-500">
+            Phantom is a crypto wallet reimagined for DeFi & NFTs
+          </p>
+        </div>
+      );
+    }
+    
+    return (
+      <div className="bg-blue-50 dark:bg-blue-900/20 p-6 rounded-lg mb-8 text-center">
+        <p className="mb-4">Please connect your wallet to use the video search feature</p>
+        <button 
+          onClick={connectWallet}
+          className="bg-purple-600 hover:bg-purple-700 rounded-lg py-2 px-4 text-white font-bold"
+        >
+          Connect Wallet
+        </button>
+        <p className="mt-2 text-xs text-gray-500">
+          Connect your Phantom wallet to search and find AI-generated videos
+        </p>
+      </div>
+    );
+  };
   
   return (
     <Layout title="NeuralFlux - Create AI Video">
       <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-bold mb-4">Create AI Video</h1>
-        <p className="text-gray-600 mb-8">
-          Generate high-quality videos from text descriptions or reference images using Step-Video-TI2V technology
-        </p>
+        <div className="bg-white rounded-xl shadow-md p-6 mb-8">
+          <div className="flex flex-col md:flex-row justify-between items-center mb-4">
+            <div className="mb-4 md:mb-0">
+              <h1 className="text-xl font-bold">Generate AI Video</h1>
+              <p className="text-gray-600">
+                Generate matching videos based on your description and preferred style
+              </p>
+            </div>
+            
+            {/* Wallet Info Bar - Show when connected */}
+            {connected && publicKey ? (
+              <WalletDropdown />
+            ) : (
+              <button 
+                onClick={connectWallet}
+                className="bg-purple-600 hover:bg-purple-700 rounded-lg py-2 px-4 text-white font-bold"
+              >
+                Connect Wallet
+              </button>
+            )}
+          </div>
+        </div>
         
         {!connected ? (
-          <div className="bg-blue-50 dark:bg-blue-900/20 p-6 rounded-lg mb-8 text-center">
-            <p className="mb-4">Please connect your wallet to use the video generation feature</p>
-            <div className="flex justify-center">
-              <WalletMultiButton className="bg-purple-600 hover:bg-purple-700 rounded-lg h-10 py-2 px-4 text-white font-bold" />
-            </div>
-            <p className="mt-2 text-xs text-gray-500">
-              If the button doesn't respond, please make sure you have the Phantom wallet browser extension installed
-            </p>
-          </div>
+          renderWalletConnection()
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="bg-white rounded-xl shadow-md p-6">
-              <h2 className="text-xl font-bold mb-4">Input Parameters</h2>
+              <h2 className="text-xl font-bold mb-4">Generation Parameters</h2>
               
               <div className="mb-4">
-                <label className="block mb-2 font-medium">Prompt Description</label>
+                <label className="block text-sm font-medium mb-2">Description</label>
                 <textarea
                   value={prompt}
                   onChange={(e) => setPrompt(e.target.value)}
+                  placeholder="Describe the video you want to generate..."
                   className="w-full p-3 border rounded-lg"
                   rows={4}
-                  placeholder="Describe in detail the video you want to generate, e.g.: A golden retriever running on a sunny beach"
-                />
+                ></textarea>
+                <p className="text-xs text-gray-500 mt-1">
+                  Please be specific about the subject, setting and action in the video
+                </p>
               </div>
               
               <div className="mb-4">
-                <label className="block mb-2 font-medium">Reference Image (Optional)</label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  className="w-full p-2 border rounded-lg"
-                />
-                {referenceImage && (
-                  <div className="mt-2 relative h-32 border rounded overflow-hidden">
-                    <img 
-                      src={referenceImage} 
-                      alt="Reference" 
-                      className="h-full w-full object-contain"
-                    />
-                    <button
-                      onClick={() => setReferenceImage(null)}
-                      className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center"
-                    >
-                      ×
-                    </button>
-                  </div>
-                )}
-              </div>
-              
-              <div className="grid grid-cols-2 gap-4 mb-4">
-                <div>
-                  <label className="block mb-2 font-medium">Duration (seconds)</label>
-                  <input
-                    type="number"
-                    value={duration}
-                    onChange={(e) => setDuration(Number(e.target.value))}
-                    min={1}
-                    max={30}
-                    className="w-full p-2 border rounded-lg"
-                  />
-                </div>
-                <div>
-                  <label className="block mb-2 font-medium">Resolution</label>
-                  <select
-                    value={resolution}
-                    onChange={(e) => setResolution(e.target.value as '480p' | '720p' | '1080p')}
-                    className="w-full p-2 border rounded-lg"
-                  >
-                    <option value="480p">480p</option>
-                    <option value="720p">720p</option>
-                    <option value="1080p">1080p</option>
-                  </select>
+                <label className="block text-sm font-medium mb-2">Reference Image (Optional)</label>
+                <div className="border-dashed border-2 border-gray-300 rounded-lg p-4 text-center">
+                  {referenceImage ? (
+                    <div className="mb-2">
+                      <img 
+                        src={referenceImage} 
+                        alt="Reference" 
+                        className="h-32 mx-auto object-contain" 
+                      />
+                      <button
+                        onClick={() => setReferenceImage(null)}
+                        className="text-red-600 text-sm mt-2"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="text-gray-500">
+                      <p className="mb-2">Drag and drop an image or click to browse</p>
+                      <label className="cursor-pointer bg-gray-200 hover:bg-gray-300 px-3 py-1 rounded-lg">
+                        Upload Image
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={handleImageUpload}
+                        />
+                      </label>
+                    </div>
+                  )}
                 </div>
               </div>
               
-              <div className="grid grid-cols-2 gap-4 mb-6">
+              <div className="grid grid-cols-1 gap-4 mb-4">
                 <div>
-                  <label className="block mb-2 font-medium">FPS</label>
-                  <input
-                    type="number"
-                    value={fps}
-                    onChange={(e) => setFps(Number(e.target.value))}
-                    min={15}
-                    max={60}
-                    className="w-full p-2 border rounded-lg"
-                  />
-                </div>
-                <div>
-                  <label className="block mb-2 font-medium">Style</label>
+                  <label className="block text-sm font-medium mb-2">Video Style</label>
                   <select
                     value={style}
                     onChange={(e) => setStyle(e.target.value)}
@@ -225,99 +247,93 @@ export default function CreatePage() {
                   >
                     <option value="realistic">Realistic</option>
                     <option value="anime">Anime</option>
-                    <option value="cartoon">Cartoon</option>
-                    <option value="abstract">Abstract</option>
                     <option value="cinematic">Cinematic</option>
+                    <option value="3d">3D Animation</option>
                   </select>
                 </div>
               </div>
               
+              {error && (
+                <div className="bg-red-50 text-red-500 p-3 rounded-lg mb-4">
+                  {error}
+                </div>
+              )}
+              
               <button
                 onClick={handleGenerate}
                 disabled={isGenerating || prompt.length < 5}
-                className={`w-full py-3 px-4 rounded-lg font-bold text-white ${
+                className={`w-full py-3 font-bold rounded-lg ${
                   isGenerating || prompt.length < 5
-                    ? 'bg-gray-400 cursor-not-allowed'
-                    : 'bg-blue-600 hover:bg-blue-700'
+                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    : 'bg-blue-600 hover:bg-blue-700 text-white'
                 }`}
               >
                 {isGenerating ? 'Generating...' : 'Generate Video'}
               </button>
-              
-              {error && <p className="mt-2 text-red-500 text-sm">{error}</p>}
             </div>
             
             <div className="bg-white rounded-xl shadow-md p-6">
-              <h2 className="text-xl font-bold mb-4">Generation Results</h2>
+              <h2 className="text-xl font-bold mb-4">Preview</h2>
               
-              {!status && !isGenerating && (
-                <div className="text-center py-12 text-gray-500">
-                  <p>Fill in the parameters on the left and click the "Generate Video" button to start</p>
-                </div>
-              )}
-              
-              {isGenerating && !status && (
-                <div className="text-center py-12">
-                  <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                  <p className="mt-4">Initializing generation process...</p>
-                </div>
-              )}
-              
-              {status && (
+              {status?.status === 'completed' && status?.result ? (
                 <div>
                   <div className="mb-4">
-                    <div className="flex justify-between text-sm mb-1">
-                      <span>Progress</span>
-                      <span>{status.progress}%</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2.5">
-                      <div 
-                        className="bg-blue-600 h-2.5 rounded-full" 
-                        style={{ width: `${status.progress}%` }}
-                      ></div>
-                    </div>
-                    <p className="mt-1 text-sm text-gray-500">
-                      Status: {
-                        status.status === 'pending' ? 'Queued' : 
-                        status.status === 'processing' ? 'Processing' : 
-                        status.status === 'completed' ? 'Completed' : 'Failed'
-                      }
-                    </p>
+                    <video 
+                      src={status.result} 
+                      controls 
+                      className="w-full rounded-lg"
+                      autoPlay
+                      loop
+                      crossOrigin="anonymous"
+                      playsInline
+                    />
+                  </div>  
+                  
+                  <div className="flex justify-center items-center mt-4">
+                    <button
+                      disabled={true}
+                      className="bg-gray-400 text-white py-2 px-4 rounded-lg font-bold relative cursor-not-allowed"
+                    >
+                      Mint as NFT
+                      <span className="absolute -top-2 -right-2 bg-yellow-500 text-xs text-white px-2 py-1 rounded-full">Coming Soon</span>
+                    </button>
                   </div>
-                  
-                  {status.status === 'completed' && status.result && (
-                    <div>
-                      <div className="border rounded-lg overflow-hidden mb-4">
-                        <video 
-                          src={status.result} 
-                          controls 
-                          className="w-full h-auto"
-                        ></video>
+                </div>
+              ) : status?.status === 'failed' ? (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+                  <div className="text-red-500 text-lg mb-3">⚠️ Generation Failed</div>
+                  <p className="text-gray-700 mb-4">{status.error || 'Unable to generate a matching video. Please try again.'}</p>
+                  <button
+                    onClick={handleGenerate}
+                    className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg"
+                  >
+                    Try Again
+                  </button>
+                </div>
+              ) : (
+                <div>
+                  {isGenerating ? (
+                    <div className="text-center py-8">
+                      <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                      <p className="font-medium">Generating matching video...</p>
+                      <p className="text-sm text-gray-500 mt-2">
+                        {status?.progress && status.progress > 90 
+                          ? "If no match found in 10 seconds, will use default style video..." 
+                          : "Generating relevant video from Step-Video-TI2V open source library..."}
+                      </p>
+                      <div className="mt-4 bg-gray-100 rounded-full h-2.5 dark:bg-gray-700">
+                        <div className="bg-blue-600 h-2.5 rounded-full" style={{ width: status?.progress ? `${status.progress}%` : '0%' }}></div>
                       </div>
-                      
-                      <div className="flex flex-col items-center">
-                        <button
-                          disabled={true}
-                          className="bg-gray-400 text-white font-bold py-2 px-6 rounded-lg relative cursor-not-allowed"
-                        >
-                          Mint as NFT
-                          <span className="absolute -top-2 -right-2 bg-yellow-500 text-xs text-white px-2 py-1 rounded-full animate-pulse">Coming Soon</span>
-                        </button>
-                        <p className="text-xs text-gray-500 mt-2">NFT minting feature will be available soon!</p>
-                      </div>
+                      <p className="text-sm text-gray-500 mt-2">
+                        {status?.progress ? `${Math.round(status.progress)}%` : '0%'} completed
+                      </p>
                     </div>
-                  )}
-                  
-                  {status.status === 'failed' && (
-                    <div className="text-center py-8 text-red-500">
-                      <p>Generation Failed</p>
-                      <p className="text-sm mt-2">{status.error || 'Unknown error'}</p>
-                      <button
-                        onClick={handleGenerate}
-                        className="mt-4 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg"
-                      >
-                        Retry
-                      </button>
+                  ) : (
+                    <div className="bg-gray-100 h-64 rounded-lg flex items-center justify-center">
+                      <div className="text-center">
+                        <p className="text-gray-500 mb-2">No video results yet</p>
+                        <p className="text-sm text-gray-400">Enter a description and click "Generate Video" button</p>
+                      </div>
                     </div>
                   )}
                 </div>

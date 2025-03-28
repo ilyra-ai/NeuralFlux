@@ -1,19 +1,16 @@
 import { useState, useEffect } from 'react';
-import { useWallet } from '@solana/wallet-adapter-react';
-import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
+import { useWallet } from '@/web3/WalletProvider';
 import { getFluxBalance, FLUX_TOKEN_INFO } from '@/web3/FluxToken';
-import { generateVideo, VideoGenerationParams } from '@/api/videoGeneration';
 import Link from 'next/link';
 import Layout from '@/components/Layout';
 import Image from 'next/image';
+import { PublicKey } from '@solana/web3.js';
+import WalletDropdown from '@/components/WalletDropdown';
 
 export default function Home() {
-  const { connected, publicKey } = useWallet();
+  const { connected, publicKey, connectWallet, isPhantomInstalled } = useWallet();
   const [balance, setBalance] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-
-  // Display the last 8 digits of wallet address
-  const truncatedAddress = publicKey ? `...${publicKey.toString().slice(-8)}` : null;
 
   // Fetch balance when wallet connection changes
   useEffect(() => {
@@ -21,7 +18,9 @@ export default function Home() {
       if (connected && publicKey) {
         setIsLoading(true);
         try {
-          const balanceInfo = await getFluxBalance(publicKey);
+          // Convert string publicKey to PublicKey object
+          const pubKeyObj = new PublicKey(publicKey);
+          const balanceInfo = await getFluxBalance(pubKeyObj);
           setBalance(balanceInfo.uiAmount);
         } catch (error) {
           console.error('Balance fetch error:', error);
@@ -35,6 +34,37 @@ export default function Home() {
 
     fetchBalance();
   }, [connected, publicKey]);
+
+  // Render wallet connection section based on Phantom installation status
+  const renderWalletConnection = () => {
+    if (!isPhantomInstalled) {
+      return (
+        <div className="bg-yellow-50 dark:bg-yellow-900/20 p-6 rounded-lg mb-8 text-center">
+          <p className="mb-4">Phantom wallet extension is not installed. You need Phantom wallet to use platform features.</p>
+          <a 
+            href="https://phantom.app/download" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="bg-purple-600 hover:bg-purple-700 rounded-lg py-2 px-4 text-white font-bold"
+          >
+            Install Phantom Wallet
+          </a>
+        </div>
+      );
+    }
+    
+    return (
+      <div className="bg-blue-50 dark:bg-blue-900/20 p-6 rounded-lg mb-8 text-center">
+        <p className="mb-4">Please connect your wallet to use platform features</p>
+        <button 
+          onClick={connectWallet}
+          className="bg-purple-600 hover:bg-purple-700 rounded-lg py-2 px-4 text-white font-bold"
+        >
+          Connect Wallet
+        </button>
+      </div>
+    );
+  };
 
   return (
     <Layout title="NeuralFlux - AI Video NFT Innovation Platform">
@@ -73,29 +103,45 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="mb-8">
-            <h2 className="text-3xl font-bold mb-6 text-center">Connect Your Wallet</h2>
-            <div className="bg-gray-100 rounded-xl p-6 flex flex-col items-center">
-              <div className="mb-4">
-                <WalletMultiButton />
+          {/* Wallet and Platform Info Section */}
+          <div className="bg-white rounded-xl shadow-md p-6 mb-8">
+            <div className="flex flex-col md:flex-row justify-between items-center mb-4">
+              <div className="mb-4 md:mb-0">
+                <h2 className="text-xl font-bold">Connect Your Wallet</h2>
+                <p className="text-gray-600">
+                  Connect your wallet to use all platform features and manage your NFTs
+                </p>
               </div>
-              {connected ? (
-                <div className="mt-4 text-center">
-                  <p className="text-green-600 font-semibold">Wallet Connected: {truncatedAddress}</p>
+              
+              {/* Wallet Info Bar - Show when connected */}
+              {connected && publicKey ? (
+                <div className="flex flex-col items-center md:items-start">
+                  <WalletDropdown />
                   {isLoading ? (
-                    <p>Loading balance...</p>
+                    <p className="text-sm text-gray-500 mt-2">Loading balance...</p>
                   ) : (
                     balance !== null && (
-                      <p className="text-gray-700 mt-2">
-                        {FLUX_TOKEN_INFO.symbol} Balance: {balance} {FLUX_TOKEN_INFO.symbol}
+                      <p className="text-sm text-gray-500 mt-2">
+                        Balance: {balance} {FLUX_TOKEN_INFO.symbol}
                       </p>
                     )
                   )}
                 </div>
               ) : (
-                <p className="text-gray-600 mt-2">Connect your Solana wallet to use platform features</p>
+                <button 
+                  onClick={connectWallet}
+                  className="bg-purple-600 hover:bg-purple-700 rounded-lg py-2 px-4 text-white font-bold"
+                >
+                  Connect Wallet
+                </button>
               )}
             </div>
+            
+            {!connected && (
+              <div className="mt-4">
+                {renderWalletConnection()}
+              </div>
+            )}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">

@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
-import { useWallet } from '@solana/wallet-adapter-react';
-import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
+import { useWallet } from '@/web3/WalletProvider';
 import Link from 'next/link';
 import Image from 'next/image';
 import Layout from '@/components/Layout';
+import WalletDropdown from '@/components/WalletDropdown';
 
 // NFT type definition
 interface NFT {
@@ -110,7 +110,7 @@ const getThumbnailBackgroundColor = (id: string) => {
 };
 
 export default function MarketplacePage() {
-  const { connected, publicKey } = useWallet();
+  const { connected, publicKey, connectWallet, isPhantomInstalled } = useWallet();
   const [nfts, setNfts] = useState<NFT[]>(MOCK_NFTS);
   const [selectedNFT, setSelectedNFT] = useState<NFT | null>(null);
   const [sortBy, setSortBy] = useState<'price' | 'date' | 'popularity'>('date');
@@ -161,6 +161,37 @@ export default function MarketplacePage() {
     // In a real application, this would call a smart contract for purchase
   };
 
+  // Render wallet connection section based on Phantom installation status
+  const renderWalletConnection = () => {
+    if (!isPhantomInstalled) {
+      return (
+        <div className="bg-yellow-50 dark:bg-yellow-900/20 p-6 rounded-lg mb-8 text-center">
+          <p className="mb-4">Phantom wallet extension is not installed. You need Phantom wallet to use the marketplace.</p>
+          <a 
+            href="https://phantom.app/download" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="bg-purple-600 hover:bg-purple-700 rounded-lg py-2 px-4 text-white font-bold"
+          >
+            Install Phantom Wallet
+          </a>
+        </div>
+      );
+    }
+    
+    return (
+      <div className="bg-blue-50 dark:bg-blue-900/20 p-6 rounded-lg mb-8 text-center">
+        <p className="mb-4">Please connect your wallet to browse and purchase NFTs</p>
+        <button 
+          onClick={connectWallet}
+          className="bg-purple-600 hover:bg-purple-700 rounded-lg py-2 px-4 text-white font-bold"
+        >
+          Connect Wallet
+        </button>
+      </div>
+    );
+  };
+
   return (
     <Layout title="NeuralFlux - NFT Marketplace">
       <div className="max-w-6xl mx-auto">
@@ -175,10 +206,16 @@ export default function MarketplacePage() {
               </p>
             </div>
             
-            {!connected && (
-              <div>
-                <WalletMultiButton className="bg-purple-600 hover:bg-purple-700 rounded-lg py-2 px-4 text-white font-bold" />
-              </div>
+            {/* Wallet Info Bar - Show when connected */}
+            {connected && publicKey ? (
+              <WalletDropdown />
+            ) : (
+              <button 
+                onClick={connectWallet}
+                className="bg-purple-600 hover:bg-purple-700 rounded-lg py-2 px-4 text-white font-bold"
+              >
+                Connect Wallet
+              </button>
             )}
           </div>
           
@@ -212,61 +249,68 @@ export default function MarketplacePage() {
           </div>
         </div>
         
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
-          {nfts.map(nft => (
-            <div key={nft.id} className="bg-white rounded-xl shadow-md overflow-hidden">
-              <div 
-                className="h-48 relative cursor-pointer" 
-                style={{ backgroundColor: getThumbnailBackgroundColor(nft.id) }}
-                onClick={() => openPreview(nft)}
-              >
-                <Image
-                  src={nft.thumbnailUrl}
-                  alt={nft.title}
-                  fill
-                  className="object-cover"
-                />
-                <div className="absolute bottom-0 right-0 bg-black bg-opacity-70 text-white px-2 py-1 text-sm">
-                  Video NFT
-                </div>
-              </div>
-              
-              <div className="p-4">
-                <h3 className="text-lg font-bold mb-1">{nft.title}</h3>
-                <p className="text-gray-600 text-sm mb-3 line-clamp-2">{nft.description}</p>
-                
-                <div className="flex justify-between items-center mb-3">
-                  <div className="text-sm">
-                    <span className="text-gray-500">Creator:</span> {nft.creator}
-                  </div>
-                  <div className="flex items-center text-sm">
-                    <span className="mr-2">♥ {nft.likes}</span>
-                    <span>👁 {nft.views}</span>
+        {!connected ? (
+          renderWalletConnection()
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            {nfts.map(nft => (
+              <div key={nft.id} className="bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow">
+                <div 
+                  className="h-48 relative cursor-pointer" 
+                  style={{ backgroundColor: getThumbnailBackgroundColor(nft.id) }}
+                  onClick={() => openPreview(nft)}
+                >
+                  <Image
+                    src={nft.thumbnailUrl}
+                    alt={nft.title}
+                    fill
+                    className="object-cover"
+                  />
+                  <div className="absolute bottom-0 right-0 bg-black bg-opacity-70 text-white px-2 py-1 text-sm">
+                    Video NFT
                   </div>
                 </div>
                 
-                <div className="flex justify-between items-center">
-                  <div>
-                    <span className="text-2xl font-bold text-purple-600">{nft.price}</span>
-                    <span className="text-gray-600 ml-1">FLUX</span>
+                <div className="p-4">
+                  <h3 className="text-lg font-bold mb-1">{nft.title}</h3>
+                  <p className="text-gray-600 text-sm mb-3 line-clamp-2">{nft.description}</p>
+                  
+                  <div className="flex justify-between items-center mb-3">
+                    <div className="text-sm">
+                      <span className="text-gray-500">Creator:</span> {nft.creator}
+                    </div>
+                    <div className="flex items-center text-sm">
+                      <span className="mr-2">♥ {nft.likes}</span>
+                      <span>👁 {nft.views}</span>
+                    </div>
                   </div>
                   
-                  <button
-                    onClick={() => handleBuyNFT(nft)}
-                    disabled={!connected}
-                    className={`py-2 px-4 rounded-lg text-sm font-medium ${
-                      connected
-                        ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                        : 'bg-gray-300 cursor-not-allowed text-gray-500'
-                    }`}
-                  >
-                    {connected ? 'Buy' : 'Wallet Required'}
-                  </button>
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <span className="text-2xl font-bold text-purple-600">{nft.price}</span>
+                      <span className="text-gray-600 ml-1">FLUX</span>
+                    </div>
+                    
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleBuyNFT(nft);
+                      }}
+                      disabled={!connected}
+                      className={`py-2 px-4 rounded-lg text-sm font-medium ${
+                        connected
+                          ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                          : 'bg-gray-300 cursor-not-allowed text-gray-500'
+                      }`}
+                    >
+                      {connected ? 'Buy' : 'Wallet Required'}
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
         
         {/* NFT preview modal */}
         {isPreviewOpen && selectedNFT && (
@@ -333,7 +377,10 @@ export default function MarketplacePage() {
                     </div>
                     
                     <button
-                      onClick={() => handleBuyNFT(selectedNFT)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleBuyNFT(selectedNFT);
+                      }}
                       disabled={!connected}
                       className={`w-full py-3 px-4 rounded-lg font-bold ${
                         connected

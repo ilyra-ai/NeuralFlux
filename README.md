@@ -1,139 +1,77 @@
-<p align="center">
-  <img src="public/neuralflux-logo-final.png" alt="NeuralFlux Logo" width="300"/>
-</p>
+# NeuralFlux - AI Video Platform
 
+NeuralFlux is a web application that allows users to find and use AI-generated videos based on text descriptions and style preferences. It provides a simple and intuitive interface for discovering videos that match specific prompts.
 
-# NeuralFlux: Web3 AI Video Generation Ecosystem
+## Features
 
+- **Generate AI Videos**: Generate Videos that match your text descriptions and preferred styles
+- **Phantom Wallet Integration**: Connect to Solana blockchain using Phantom wallet
+- **Responsive Design**: Works on desktop and mobile devices
+- **Video Preview**: Preview videos before minting as NFTs
+- **Marketplace**: Coming Soon - Browse and trade NFTs in the marketplace
 
-NeuralFlux is an innovative platform that combines cutting-edge AI video generation technology with Web3 economic models, enabling creators to create and monetize in unprecedented ways.
+## Getting Started
 
-## Project Overview
+### Prerequisites
 
-NeuralFlux integrates AI video generation technology with the Solana blockchain, creating a complete decentralized content generation and trading ecosystem. The platform allows creators to create video content using state-of-the-art AI technology and mint and trade it in the form of NFTs.
+- Node.js (v14 or later)
+- NPM or Yarn
+- [Phantom Wallet](https://phantom.app/) browser extension (for blockchain features)
 
-## Technical Architecture
+### Installation
 
-<p align="center">
-  <img src="public/tech-architecture.svg" alt="NeuralFlux Technical Architecture" width="800"/>
-</p>
+1. Clone the repository:
+   ```
+   git clone https://github.com/yourusername/neuralflux.git
+   cd neuralflux
+   ```
 
-```
-Technical Architecture Description:
+2. Install dependencies:
+   ```
+   npm install
+   # or
+   yarn
+   ```
 
-Frontend Layer → API Layer → Blockchain Layer → Storage Layer
+3. Create a `.env.local` file in the root directory with the following variables:
+   ```
+   NEXT_PUBLIC_SOLANA_RPC_HOST=https://api.mainnet-beta.solana.com
+   NEXT_PUBLIC_ENDPOINT=https://api.neuralflux.io
+   ```
 
-1. User Interface (Next.js + React)
-2. API Services (AI Video Generation, NFT Metadata)
-3. Blockchain Interaction (Solana Programs)
-4. Decentralized Storage (Arweave/IPFS)
-```
-
-## User Flow
-
-<p align="center">
-  <img src="public/user-flow.svg" alt="NeuralFlux User Flow" width="800"/>
-</p>
-
-```
-Main Process:
-
-1. Connect Wallet
-2. Create AI Video
-3. Mint NFT
-4. List on Marketplace
-5. Trade and Revenue Distribution
-```
-
-## Core Features
-
-- **AI Video Generation**: Generate high-quality video content based on text prompts
-- **NFT Minting**: Mint generated videos as NFTs on the Solana blockchain
-- **Web3 Wallet Integration**: Seamless connection with Solana wallets like Phantom
-- **NFT Marketplace**: Browse, buy, and sell video NFTs
-- **DAO Governance**: Community participation in platform decisions and development
-- **Token Economy**: Token-based incentive mechanisms and value distribution
-
-## Tech Stack
-
-- **Frontend**: Next.js, React, TypeScript, TailwindCSS
-- **Blockchain**: Solana, Anchor Framework
-- **AI Services**: Custom video generation API
-- **Wallet Integration**: Phantom wallet
-- **Deployment**: Vercel
-
-## Component Architecture
-
-<p align="center">
-  <img src="public/component-diagram.svg" alt="NeuralFlux Component Architecture" width="800"/>
-</p>
+### Running the Development Server
 
 ```
-Component Architecture Description:
-
-- Top Level: Application Entry Components
-- Page Layer: Functional Page Components
-- Core Component Layer: Business Logic Components
-- Utility Layer: Common Function Libraries
-```
-
-## Installation Guide
-
-1. **Clone Repository**
-
-```bash
-git clone https://github.com/your-organization/neuralflux.git
-cd neuralflux
-```
-
-2. **Install Dependencies**
-
-```bash
-npm install
-```
-
-3. **Environment Configuration**
-
-Create a `.env.local` file and add the necessary environment variables:
-
-```
-NEXT_PUBLIC_SOLANA_RPC_HOST=https://api.mainnet-beta.solana.com
-NEXT_PUBLIC_ENDPOINT=your-api-endpoint
-```
-
-4. **Start Development Server**
-
-```bash
 npm run dev
+# or
+yarn dev
 ```
 
-The application will run at `http://localhost:3000`.
+Open [http://localhost:3000](http://localhost:3000) in your browser to see the application.
 
-## Usage Guide
+## Project Structure
 
-1. **Connect Wallet**: Click the "Connect Wallet" button in the navigation bar and select Phantom wallet to connect.
-2. **Create Video**: Visit the creation page, enter a descriptive prompt, and generate an AI video.
-3. **Mint NFT**: Mint an NFT for your video work, setting quantity and price.
-4. **Browse Marketplace**: Explore NFT works by other creators and purchase content of interest.
-5. **Participate in DAO**: Use your tokens to participate in platform governance voting.
+- `src/pages`: Next.js pages that define the routes of the application
+- `src/components`: Reusable React components
+- `src/web3`: Wallet integration and blockchain related code
+- `src/api`: API integration for video services
+- `public`: Static assets
 
-## Contribution Guidelines
+## Usage
 
-Contributions to the NeuralFlux project are welcome! Please follow these steps:
+1. **Connect Wallet**: Click the "Connect Wallet" button to connect your Phantom wallet
+2. **Search Video**: Enter a detailed description and select a style
+3. **Preview**: View the video that matches your criteria
+4. **Mint NFT** (Coming Soon): Mint the video as an NFT on the Solana blockchain
 
-1. Fork this repository
-2. Create your feature branch: `git checkout -b feature/amazing-feature`
-3. Commit your changes: `git commit -m 'Add some amazing feature'`
-4. Push to the branch: `git push origin feature/amazing-feature`
-5. Submit a Pull Request
+## Wallet Integration Features
+
+- Connect to Phantom wallet
+- Display wallet address
+- Select or change wallet
+- Disconnect wallet
+- Check if Phantom is installed
 
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
-
-## Contact Us
-
-- Website: [neuralflux.xyz](https://neuralflux.xyz)
-- Email: info@neuralflux.xyz
-- Twitter: [@NeuralFlux](https://twitter.com/NeuralFlux)
-- Discord: [NeuralFlux Community](https://discord.gg/neuralflux)

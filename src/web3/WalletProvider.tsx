@@ -1,121 +1,128 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { PublicKey } from "@solana/web3.js";
+import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
 
-// Define phantom wallet type without extending Window
-type PhantomWallet = {
+interface PhantomWallet {
   isPhantom?: boolean;
-  connect: () => Promise<{ publicKey: { toString: () => string } }>;
+  connect: (options?: { onlyIfTrusted?: boolean }) => Promise<{ publicKey: { toString: () => string } }>;
   disconnect: () => Promise<void>;
   on: (event: string, callback: () => void) => void;
-  removeListener: (event: string, callback: () => void) => void;
-};
+  isConnected: boolean;
+}
 
-// Helper function to get phantom wallet
-const getPhantomWallet = (): PhantomWallet | undefined => {
-  if (typeof window !== "undefined") {
-    return (window as any).solana;
+declare global {
+  interface Window {
+    phantom?: {
+      solana?: PhantomWallet;
+    };
   }
-  return undefined;
-};
+}
 
-type WalletContextType = {
-  wallet: PhantomWallet | undefined;
-  publicKey: string | null;
+export interface WalletContextType {
   connected: boolean;
-  connecting: boolean;
+  publicKey: string | null;
   connectWallet: () => Promise<void>;
   disconnectWallet: () => Promise<void>;
-};
+  isPhantomInstalled: boolean;
+}
 
 const WalletContext = createContext<WalletContextType>({
-  wallet: undefined,
-  publicKey: null,
   connected: false,
-  connecting: false,
+  publicKey: null,
   connectWallet: async () => {},
   disconnectWallet: async () => {},
+  isPhantomInstalled: false,
 });
 
 export const useWallet = () => useContext(WalletContext);
 
-type WalletProviderProps = {
+interface WalletProviderProps {
   children: ReactNode;
-};
+}
 
 export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
-  const [wallet, setWallet] = useState<PhantomWallet | undefined>(undefined);
   const [publicKey, setPublicKey] = useState<string | null>(null);
   const [connected, setConnected] = useState<boolean>(false);
-  const [connecting, setConnecting] = useState<boolean>(false);
+  const [isPhantomInstalled, setIsPhantomInstalled] = useState<boolean>(false);
+  const [wallet, setWallet] = useState<PhantomWallet | undefined>(undefined);
 
+  // Check if Phantom is installed
   useEffect(() => {
-    const phantom = getPhantomWallet();
-    setWallet(phantom);
-
-    // Handle account changes
-    const onAccountChange = () => {
-      if (wallet && wallet.isPhantom) {
-        const key = (wallet as any).publicKey?.toString();
-        setPublicKey(key || null);
-        setConnected(!!key);
+    const checkPhantomInstallation = () => {
+      const phantomWallet = window.phantom?.solana;
+      if (phantomWallet?.isPhantom) {
+        setIsPhantomInstalled(true);
+        setWallet(phantomWallet);
+        if (phantomWallet.isConnected) {
+          setConnected(true);
+          // If already connected, get the public key
+          phantomWallet.connect({ onlyIfTrusted: true })
+            .then(({ publicKey }) => {
+              setPublicKey(publicKey.toString());
+            })
+            .catch(console.error);
+        }
+      } else {
+        setIsPhantomInstalled(false);
+        console.log("Phantom wallet is not installed");
       }
     };
 
-    if (phantom) {
-      phantom.on("accountChanged", onAccountChange);
-      phantom.on("connect", onAccountChange);
-      phantom.on("disconnect", () => {
-        setPublicKey(null);
-        setConnected(false);
-      });
+    if (typeof window !== 'undefined') {
+      checkPhantomInstallation();
     }
+  }, []);
 
-    return () => {
-      if (phantom) {
-        phantom.removeListener("accountChanged", onAccountChange);
-        phantom.removeListener("connect", onAccountChange);
-        phantom.removeListener("disconnect", () => {
-          setPublicKey(null);
-          setConnected(false);
-        });
-      }
-    };
-  }, [wallet]);
-
-  const connectWallet = async (): Promise<void> => {
-    if (!wallet) return;
+  // Connect wallet
+  const connectWallet = async () => {
     try {
-      setConnecting(true);
+      if (!wallet) {
+        console.error("Phantom wallet not found");
+        return;
+      }
+
       const response = await wallet.connect();
-      setPublicKey(response.publicKey.toString());
+      const publicKey = response.publicKey.toString();
+      
+      console.log("Connected to wallet:", publicKey);
+      
+      setPublicKey(publicKey);
       setConnected(true);
+      
+      // Save connection in sessionStorage
+      sessionStorage.setItem('walletConnected', 'true');
     } catch (error) {
-      console.error("Connection error:", error);
-    } finally {
-      setConnecting(false);
+      console.error("Error connecting to Phantom wallet:", error);
     }
   };
 
-  const disconnectWallet = async (): Promise<void> => {
-    if (!wallet) return;
+  // Disconnect wallet
+  const disconnectWallet = async () => {
     try {
+      if (!wallet) {
+        console.error("Phantom wallet not found");
+        return;
+      }
+
       await wallet.disconnect();
       setPublicKey(null);
       setConnected(false);
+      
+      // Remove from sessionStorage
+      sessionStorage.removeItem('walletConnected');
+      
+      console.log("Disconnected from wallet");
     } catch (error) {
-      console.error("Disconnection error:", error);
+      console.error("Error disconnecting from Phantom wallet:", error);
     }
   };
 
   return (
     <WalletContext.Provider
       value={{
-        wallet,
-        publicKey,
         connected,
-        connecting,
+        publicKey,
         connectWallet,
         disconnectWallet,
+        isPhantomInstalled,
       }}
     >
       {children}

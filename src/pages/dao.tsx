@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
-import { useWallet } from '@solana/wallet-adapter-react';
-import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
+import { useWallet } from '@/web3/WalletProvider';
 import { FLUX_TOKEN_INFO } from '@/web3/FluxToken';
 import Link from 'next/link';
 import Layout from '@/components/Layout';
 import { PublicKey } from '@solana/web3.js';
+import WalletDropdown from '@/components/WalletDropdown';
 
 // Governance proposal interface
 interface Proposal {
@@ -89,8 +89,7 @@ const MOCK_DAO_METRICS: DAOMetrics = {
 };
 
 export default function DAOPage() {
-  const { connected, publicKey } = useWallet();
-  const address = publicKey?.toBase58() || null;
+  const { connected, publicKey, connectWallet, isPhantomInstalled } = useWallet();
   const [proposals, setProposals] = useState<Proposal[]>([]);
   const [metrics, setMetrics] = useState<DAOMetrics | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -108,14 +107,14 @@ export default function DAOPage() {
       setIsLoading(false);
       
       // If connected, set mock staked amount
-      if (connected && publicKey && address) {
+      if (connected && publicKey) {
         // Mock staked amount (would come from contract)
         setStakedAmount(Math.floor(Math.random() * 5000));
       }
     };
     
     loadDAOData();
-  }, [connected, publicKey, address]);
+  }, [connected, publicKey]);
   
   // Get status badge class
   const getStatusBadgeClass = (status: Proposal['status']) => {
@@ -131,6 +130,37 @@ export default function DAOPage() {
       default:
         return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200';
     }
+  };
+  
+  // Render wallet connection section based on Phantom installation status
+  const renderWalletConnection = () => {
+    if (!isPhantomInstalled) {
+      return (
+        <div className="bg-yellow-50 dark:bg-yellow-900/20 p-6 rounded-lg mb-8 text-center">
+          <p className="mb-4">Phantom wallet extension is not installed. You need Phantom wallet to participate in governance.</p>
+          <a 
+            href="https://phantom.app/download" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="bg-purple-600 hover:bg-purple-700 rounded-lg py-2 px-4 text-white font-bold"
+          >
+            Install Phantom Wallet
+          </a>
+        </div>
+      );
+    }
+    
+    return (
+      <div className="bg-blue-50 dark:bg-blue-900/20 p-6 rounded-lg mb-8 text-center">
+        <p className="mb-4">Connect your wallet to stake tokens and participate in governance</p>
+        <button 
+          onClick={connectWallet}
+          className="bg-purple-600 hover:bg-purple-700 rounded-lg py-2 px-4 text-white font-bold"
+        >
+          Connect Wallet
+        </button>
+      </div>
+    );
   };
   
   return (
@@ -186,115 +216,119 @@ export default function DAOPage() {
               <h2 className="text-xl font-bold mb-4">Your DAO Participation</h2>
               
               {!connected ? (
-                <div>
-                  <p className="mb-4">Connect your wallet to stake tokens and participate in governance</p>
-                  <WalletMultiButton className="btn-primary" />
-                </div>
+                renderWalletConnection()
               ) : (
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col md:flex-row items-start md:items-center justify-between">
                   <div>
                     <div className="mb-4">
                       <div className="text-sm text-gray-500 mb-1">Staked Amount</div>
                       <div className="text-xl font-bold">{stakedAmount} {FLUX_TOKEN_INFO.symbol}</div>
                     </div>
                     <div className="text-sm text-gray-500 mb-2">
-                      Staking FLUX tokens gives you voting power in the DAO. 1 FLUX = 1 vote.
+                      Staking tokens gives you voting power in the DAO
                     </div>
                   </div>
-                  <Link href="#" className="text-primary hover:underline">
-                    Learn more about DAO participation
-                  </Link>
+                  
+                  <div className="flex flex-col space-y-2 md:space-y-0 md:flex-row md:space-x-2 mt-4 md:mt-0">
+                    {/* Wallet Dropdown - instead of separate wallet buttons */}
+                    <WalletDropdown minimal={true} className="mb-2 md:mb-0" />
+                    
+                    <button className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg">
+                      Stake More Tokens
+                    </button>
+                    <button className="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg">
+                      Unstake Tokens
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
             
             {/* Tabs */}
-            <div className="mb-6 border-b">
-              <div className="flex space-x-8">
-                <button
-                  className={`pb-4 px-2 ${
-                    tab === 'proposals'
-                      ? 'border-b-2 border-primary font-bold'
-                      : 'text-gray-500'
-                  }`}
-                  onClick={() => setTab('proposals')}
-                >
-                  Governance Proposals
-                </button>
-                <button
-                  className={`pb-4 px-2 ${
-                    tab === 'treasury'
-                      ? 'border-b-2 border-primary font-bold'
-                      : 'text-gray-500'
-                  }`}
-                  onClick={() => setTab('treasury')}
-                >
-                  Treasury
-                </button>
-              </div>
+            <div className="flex border-b mb-6">
+              <button
+                onClick={() => setTab('proposals')}
+                className={`py-2 px-4 font-medium ${
+                  tab === 'proposals'
+                    ? 'border-b-2 border-blue-600 text-blue-600'
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                Governance Proposals
+              </button>
+              <button
+                onClick={() => setTab('treasury')}
+                className={`py-2 px-4 font-medium ${
+                  tab === 'treasury'
+                    ? 'border-b-2 border-blue-600 text-blue-600'
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                Treasury
+              </button>
             </div>
             
+            {/* Proposals Tab */}
             {tab === 'proposals' && (
-              <div>
+              <>
                 <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-xl font-bold">Governance Proposals</h2>
-                  <Link 
-                    href="#"
-                    className="btn-primary-outline"
+                  <h2 className="text-xl font-bold">Active Proposals</h2>
+                  <button 
+                    disabled={!connected}
+                    className={`py-2 px-4 rounded-lg font-bold ${
+                      connected
+                        ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                        : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    }`}
                   >
                     Create Proposal
-                  </Link>
+                  </button>
                 </div>
                 
                 <div className="space-y-4">
                   {proposals.map(proposal => (
                     <div key={proposal.id} className="card">
-                      <div className="flex justify-between mb-2">
+                      <div className="flex justify-between items-start mb-2">
                         <h3 className="text-lg font-bold">{proposal.title}</h3>
-                        <span className={`px-2 py-1 rounded-full text-xs ${getStatusBadgeClass(proposal.status)}`}>
-                          {proposal.status === 'active' && 'Active'}
-                          {proposal.status === 'passed' && 'Passed'}
-                          {proposal.status === 'rejected' && 'Rejected'}
-                          {proposal.status === 'executed' && 'Executed'}
+                        <span className={`text-xs px-2 py-1 rounded-full ${getStatusBadgeClass(proposal.status)}`}>
+                          {proposal.status.charAt(0).toUpperCase() + proposal.status.slice(1)}
                         </span>
                       </div>
                       
-                      <p className="text-gray-600 dark:text-gray-300 text-sm mb-4">
+                      <p className="text-gray-600 dark:text-gray-300 mb-4 text-sm">
                         {proposal.description}
                       </p>
                       
-                      <div className="flex justify-between text-sm text-gray-500 mb-2">
-                        <span>Created by: {proposal.creator}</span>
-                        <span>
-                          {proposal.status === 'active' 
-                            ? `Ends: ${proposal.voteEnd.toLocaleDateString()}` 
-                            : `Ended: ${proposal.voteEnd.toLocaleDateString()}`}
-                        </span>
+                      <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
+                        <div>
+                          <p className="text-gray-500 mb-1">Created by</p>
+                          <p className="font-mono">{proposal.creator}</p>
+                        </div>
+                        <div>
+                          <p className="text-gray-500 mb-1">Voting Period</p>
+                          <p>{proposal.voteStart.toLocaleDateString()} - {proposal.voteEnd.toLocaleDateString()}</p>
+                        </div>
                       </div>
                       
-                      <div className="mb-2">
+                      <div className="mb-4">
                         <div className="flex justify-between text-sm mb-1">
-                          <span>Yes: {(proposal.votesFor / proposal.totalVotes * 100).toFixed(1)}%</span>
-                          <span>No: {(proposal.votesAgainst / proposal.totalVotes * 100).toFixed(1)}%</span>
+                          <span>For: {proposal.votesFor.toLocaleString()} votes ({Math.round(proposal.votesFor / proposal.totalVotes * 100)}%)</span>
+                          <span>Against: {proposal.votesAgainst.toLocaleString()} votes ({Math.round(proposal.votesAgainst / proposal.totalVotes * 100)}%)</span>
                         </div>
-                        <div className="w-full bg-gray-200 dark:bg-dark-light rounded-full h-2.5">
+                        <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
                           <div 
-                            className="bg-primary h-2.5 rounded-full" 
+                            className="h-full bg-blue-600" 
                             style={{ width: `${proposal.votesFor / proposal.totalVotes * 100}%` }}
                           ></div>
                         </div>
                       </div>
                       
-                      <div className="text-sm text-gray-500">
-                        Total votes: {proposal.totalVotes.toLocaleString()} {FLUX_TOKEN_INFO.symbol}
-                      </div>
-                      
                       {proposal.status === 'active' && connected && (
-                        <div className="mt-4 flex space-x-2">
-                          <button className="flex-1 bg-green-100 hover:bg-green-200 text-green-800 py-2 rounded-lg transition-colors">
+                        <div className="flex space-x-2">
+                          <button className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded flex-1">
                             Vote For
                           </button>
-                          <button className="flex-1 bg-red-100 hover:bg-red-200 text-red-800 py-2 rounded-lg transition-colors">
+                          <button className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded flex-1">
                             Vote Against
                           </button>
                         </div>
@@ -302,98 +336,55 @@ export default function DAOPage() {
                     </div>
                   ))}
                 </div>
-              </div>
+              </>
             )}
             
+            {/* Treasury Tab */}
             {tab === 'treasury' && (
-              <div>
-                <h2 className="text-xl font-bold mb-6">DAO Treasury</h2>
-                <div className="card">
-                  <p className="mb-4">
-                    The DAO treasury contains funds used for platform development, marketing, and other initiatives approved by governance.
-                  </p>
-                  
-                  <div className="mb-6">
-                    <h3 className="text-lg font-bold mb-2">Treasury Assets</h3>
-                    <div className="bg-gray-100 dark:bg-dark-light p-4 rounded-lg">
-                      <div className="flex justify-between mb-2">
-                        <span>FLUX</span>
-                        <span>{metrics?.treasuryBalance.toLocaleString()} {FLUX_TOKEN_INFO.symbol}</span>
-                      </div>
-                      <div className="flex justify-between mb-2">
-                        <span>SOL</span>
-                        <span>5,000 SOL</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>USDC</span>
-                        <span>250,000 USDC</span>
-                      </div>
-                    </div>
-                  </div>
-                  
+              <div className="card">
+                <h2 className="text-xl font-bold mb-4">Treasury Management</h2>
+                <p className="text-gray-600 dark:text-gray-300 mb-4">
+                  The DAO Treasury contains funds that are managed by governance votes. Proposals for spending require a majority vote to pass.
+                </p>
+                
+                <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg mb-6">
+                  <h3 className="font-bold mb-2">Treasury Balance</h3>
+                  <p className="text-2xl font-bold">{metrics?.treasuryBalance.toLocaleString()} {FLUX_TOKEN_INFO.symbol}</p>
+                </div>
+                
+                <div className="space-y-4">
                   <div>
-                    <h3 className="text-lg font-bold mb-2">Recent Expenditures</h3>
-                    <div className="overflow-x-auto">
-                      <table className="min-w-full">
-                        <thead>
-                          <tr className="border-b dark:border-gray-700">
-                            <th className="py-2 text-left text-sm">Date</th>
-                            <th className="py-2 text-left text-sm">Description</th>
-                            <th className="py-2 text-left text-sm">Amount</th>
-                            <th className="py-2 text-left text-sm">Proposal</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          <tr className="border-b dark:border-gray-700">
-                            <td className="py-2 text-sm">2025-04-20</td>
-                            <td className="py-2 text-sm">Developer grants - Q2</td>
-                            <td className="py-2 text-sm">50,000 FLUX</td>
-                            <td className="py-2 text-sm"><a href="#" className="text-primary hover:underline">View</a></td>
-                          </tr>
-                          <tr className="border-b dark:border-gray-700">
-                            <td className="py-2 text-sm">2025-04-15</td>
-                            <td className="py-2 text-sm">Marketing campaign</td>
-                            <td className="py-2 text-sm">25,000 USDC</td>
-                            <td className="py-2 text-sm"><a href="#" className="text-primary hover:underline">View</a></td>
-                          </tr>
-                          <tr className="border-b dark:border-gray-700">
-                            <td className="py-2 text-sm">2025-04-05</td>
-                            <td className="py-2 text-sm">AI model training</td>
-                            <td className="py-2 text-sm">100,000 FLUX</td>
-                            <td className="py-2 text-sm"><a href="#" className="text-primary hover:underline">View</a></td>
-                          </tr>
-                          <tr>
-                            <td className="py-2 text-sm">2025-03-28</td>
-                            <td className="py-2 text-sm">Security audit</td>
-                            <td className="py-2 text-sm">15,000 USDC</td>
-                            <td className="py-2 text-sm"><a href="#" className="text-primary hover:underline">View</a></td>
-                          </tr>
-                        </tbody>
-                      </table>
-                    </div>
+                    <h3 className="font-bold mb-2">Recent Allocations</h3>
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b">
+                          <th className="text-left py-2">Date</th>
+                          <th className="text-left py-2">Description</th>
+                          <th className="text-right py-2">Amount</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr className="border-b">
+                          <td className="py-2">2025-04-15</td>
+                          <td className="py-2">Developer grants</td>
+                          <td className="text-right py-2">-50,000 FLUX</td>
+                        </tr>
+                        <tr className="border-b">
+                          <td className="py-2">2025-04-10</td>
+                          <td className="py-2">Marketing campaign</td>
+                          <td className="text-right py-2">-25,000 FLUX</td>
+                        </tr>
+                        <tr className="border-b">
+                          <td className="py-2">2025-04-01</td>
+                          <td className="py-2">Platform fee income</td>
+                          <td className="text-right py-2 text-green-600">+125,000 FLUX</td>
+                        </tr>
+                      </tbody>
+                    </table>
                   </div>
                 </div>
               </div>
             )}
-            
-            {/* Call to Action */}
-            <div className="mt-12 bg-primary/10 rounded-lg p-8 text-center">
-              <h2 className="text-2xl font-bold mb-4">Join the NeuralFlux Community</h2>
-              <p className="mb-6">
-                Participate in discussions, contribute to the project, and help shape the future of AI-generated content
-              </p>
-              <div className="flex justify-center space-x-4">
-                <a href="#" className="btn-primary">
-                  Discord
-                </a>
-                <a href="#" className="btn-secondary">
-                  Twitter
-                </a>
-                <a href="#" className="btn-secondary">
-                  Forums
-                </a>
-              </div>
-            </div>
           </>
         )}
       </div>

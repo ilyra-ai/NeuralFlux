@@ -4,10 +4,10 @@ import axios from 'axios';
 export interface VideoGenerationParams {
   prompt: string;
   referenceImage?: string; // base64 encoded image
-  style?: string;
-  duration?: number; // in seconds
-  resolution?: '480p' | '720p' | '1080p';
-  fps?: number;
+  style: string;
+  duration: number; // in seconds
+  resolution: '480p' | '720p' | '1080p';
+  fps: number;
 }
 
 // Generation status interface
@@ -19,101 +19,212 @@ export interface GenerationStatus {
   error?: string;
 }
 
-// 定义视频样式类型
-type VideoStyle = 'realistic' | 'anime' | 'cartoon' | 'abstract' | 'cinematic' | 'default';
-
-// Real videos for different styles - mapping styles to actual video URLs
-const REAL_VIDEOS: Record<VideoStyle, string> = {
-  // 写实风格 - 自然风景
-  realistic: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4',
-  
-  // 动漫风格 - 动画
-  anime: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
-  
-  // 卡通风格 - 3D卡通
-  cartoon: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
-  
-  // 抽象风格 - 抽象视觉
-  abstract: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4',
-  
-  // 电影风格 - 电影级视频
-  cinematic: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackOnStreetAndDirt.mp4',
-  
-  // 默认视频 - 高质量通用视频
-  default: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4'
+// Mock video database - mapping styles to predefined video URLs
+const STYLE_VIDEO_URLS: Record<string, string[]> = {
+  'realistic': [
+    'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+    'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
+    'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+    'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
+  ],
+  'anime': [
+    'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4',
+    'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4',
+    'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4',
+    'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4',
+  ],
+  'cinematic': [
+    'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackOnStreetAndDirt.mp4',
+    'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4',
+    'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/VolkswagenGTIReview.mp4',
+    'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WeAreGoingOnBullrun.mp4',
+  ],
+  '3d': [
+    'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WhatCarCanYouGetForAGrand.mp4',
+    'https://storage.coverr.co/videos/zFBCJnA5qe01oZ4zXATHqVzA9JYEDGgwE?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBJZCI6IjIzQ0I1QURCMjc3QTk2RTc4MTBBIiwiaWF0IjoxNjI2ODQ1NjI0fQ.fK_GHdXsQndWifJJcJw4ky-6VFIlZQow0V4uI_OnJvg',
+    'https://storage.coverr.co/videos/g5qfOaD00k1gJnw4VN9HDDfLu1voDvf01?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBJZCI6IjIzQ0I1QURCMjc3QTk2RTc4MTBBIiwiaWF0IjoxNjI2ODQ1NjI0fQ.fK_GHdXsQndWifJJcJw4ky-6VFIlZQow0V4uI_OnJvg',
+    'https://storage.coverr.co/videos/Y3CuDQTQhU01OjbJIn00DdfTqB7W29Cg?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBJZCI6IjIzQ0I1QURCMjc3QTk2RTc4MTBBIiwiaWF0IjoxNjI2ODQ1NjI0fQ.fK_GHdXsQndWifJJcJw4ky-6VFIlZQow0V4uI_OnJvg',
+  ],
 };
 
-// Mock video generation response with better tracking of progress
-const mockVideoGeneration = async (params: VideoGenerationParams): Promise<string> => {
-  // Simulate backend processing time - shorter for demo purposes
-  await new Promise(resolve => setTimeout(resolve, 1000));
-  
-  // Simple validation
-  if (!params.prompt || params.prompt.length < 5) {
-    throw new Error('Prompt is too short, please provide a more detailed description');
-  }
-  
-  // Return a mock video ID that includes style info for later retrieval
-  const style = params.style || 'default';
-  return `video_${Date.now()}_${style}`;
+// Default videos for each style to use when search times out
+const DEFAULT_STYLE_VIDEOS: Record<string, string> = {
+  'realistic': 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+  'anime': 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4',
+  'cinematic': 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4',
+  '3d': 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WhatCarCanYouGetForAGrand.mp4',
 };
 
-// Store for mock generation progress tracking
-const progressStore: Record<string, number> = {};
-
-// Mock fetch generation status with realistic progress updates
-const mockGetGenerationStatus = async (id: string): Promise<GenerationStatus> => {
-  // Extract style from ID
-  const parts = id.split('_');
-  const style = parts.length > 2 ? parts[2] : 'default';
-  
-  // Get current progress or initialize
-  if (!progressStore[id]) {
-    progressStore[id] = 0;
+// Generate a deterministic index based on the prompt and style to select a video
+const getVideoIndex = (prompt: string, style: string): number => {
+  // Simple hash function to convert the prompt to a number
+  let hash = 0;
+  for (let i = 0; i < prompt.length; i++) {
+    hash = ((hash << 5) - hash) + prompt.charCodeAt(i);
+    hash |= 0; // Convert to 32bit integer
   }
   
-  // Update progress more realistically
-  if (progressStore[id] < 100) {
-    // Increment by a random amount between 5-15%
-    progressStore[id] += Math.floor(Math.random() * 10) + 5;
+  // Ensure positive value
+  hash = Math.abs(hash);
+  
+  // Get available videos for the specified style
+  const videos = STYLE_VIDEO_URLS[style] || STYLE_VIDEO_URLS['realistic'];
+  
+  // Return index between 0 and videos.length-1
+  return hash % videos.length;
+};
+
+// Store generation statuses in session storage
+const getStoredStatuses = (): Record<string, GenerationStatus> => {
+  if (typeof window === 'undefined') return {};
+  
+  const stored = sessionStorage.getItem('videoGenerationStatuses');
+  return stored ? JSON.parse(stored) : {};
+};
+
+const setStoredStatus = (id: string, status: GenerationStatus): void => {
+  if (typeof window === 'undefined') return;
+  
+  const statuses = getStoredStatuses();
+  statuses[id] = status;
+  sessionStorage.setItem('videoGenerationStatuses', JSON.stringify(statuses));
+};
+
+// Generate a unique ID
+const generateId = (): string => {
+  return Date.now().toString(36) + Math.random().toString(36).substring(2);
+};
+
+// Simulate searching for video directly
+const searchForVideo = async (prompt: string, style: string, timeoutMs = 10000): Promise<string> => {
+  console.log(`Searching for video with prompt: "${prompt}" and style: ${style}`);
+  
+  return new Promise((resolve) => {
+    // Set a timeout to resolve with default style video if search takes too long
+    const timeoutId = setTimeout(() => {
+      console.log(`Search timed out after ${timeoutMs}ms, using default ${style} video`);
+      resolve(DEFAULT_STYLE_VIDEOS[style] || DEFAULT_STYLE_VIDEOS['realistic']);
+    }, timeoutMs);
     
-    // Cap at 100
-    if (progressStore[id] > 100) {
-      progressStore[id] = 100;
+    // Simulate video search with random completion time (1-12 seconds)
+    const searchTime = Math.random() * 12000; // Random time between 0-12 seconds
+    
+    setTimeout(() => {
+      // If this executes before the timeout, we "found" a matching video
+      if (searchTime < timeoutMs) {
+        clearTimeout(timeoutId);
+        
+        // Get a video based on prompt and style
+        const videoIndex = getVideoIndex(prompt, style);
+        const videos = STYLE_VIDEO_URLS[style] || STYLE_VIDEO_URLS['realistic'];
+        const videoUrl = videos[videoIndex];
+        
+        console.log(`Found matching video in ${searchTime / 1000}s: ${videoUrl}`);
+        resolve(videoUrl);
+      }
+      // If this executes after the timeout, the timeout handler already resolved with default video
+    }, searchTime);
+  });
+};
+
+// Simulate video generation/fetching process
+export const generateVideo = async (params: VideoGenerationParams): Promise<string> => {
+  console.log('Video generation parameters:', params);
+  
+  // Create a unique ID for this generation
+  const id = generateId();
+  
+  // Store initial status
+  const initialStatus: GenerationStatus = {
+    id,
+    status: 'pending',
+    progress: 0,
+  };
+  setStoredStatus(id, initialStatus);
+  
+  // Start "processing" in the background
+  setTimeout(() => {
+    simulateProcessing(id, params);
+  }, 500);
+  
+  return id;
+};
+
+// Simulate the video processing workflow
+const simulateProcessing = (id: string, params: VideoGenerationParams): void => {
+  // Update to processing state
+  const processingStatus: GenerationStatus = {
+    id,
+    status: 'processing',
+    progress: 10,
+  };
+  setStoredStatus(id, processingStatus);
+  
+  // Start the video search process
+  (async () => {
+    try {
+      // Simulate progress updates while searching
+      let progress = 10;
+      const progressInterval = setInterval(() => {
+        progress += 5;
+        if (progress >= 95) {
+          clearInterval(progressInterval);
+          progress = 95;
+        }
+        
+        const updatedStatus: GenerationStatus = {
+          id,
+          status: 'processing',
+          progress,
+        };
+        setStoredStatus(id, updatedStatus);
+      }, 500);
+      
+      // Search for video with 10-second timeout
+      const videoUrl = await searchForVideo(params.prompt, params.style);
+      
+      // Clear the progress interval
+      clearInterval(progressInterval);
+      
+      // Mark as completed
+      const completedStatus: GenerationStatus = {
+        id,
+        status: 'completed',
+        progress: 100,
+        result: videoUrl,
+      };
+      setStoredStatus(id, completedStatus);
+    } catch (error) {
+      console.error('Error during video search:', error);
+      
+      // Mark as failed
+      const failedStatus: GenerationStatus = {
+        id,
+        status: 'failed',
+        progress: 100,
+        error: 'Failed to find a matching video. Please try again.',
+      };
+      setStoredStatus(id, failedStatus);
     }
+  })();
+};
+
+// Get the status of a generation by ID
+export const getGenerationStatus = async (id: string): Promise<GenerationStatus> => {
+  const statuses = getStoredStatuses();
+  const status = statuses[id];
+  
+  if (!status) {
+    throw new Error(`Generation with ID ${id} not found`);
   }
   
-  const progress = progressStore[id];
-  const isCompleted = progress === 100;
-  
-  // Return appropriate status and video URL based on style when completed
-  return {
-    id,
-    status: isCompleted ? 'completed' : 'processing',
-    progress,
-    result: isCompleted ? getVideoForStyle(style) : undefined
-  };
+  return status;
 };
 
-// Helper function to get video URL for a given style
-function getVideoForStyle(style: string): string {
-  return (style in REAL_VIDEOS) 
-    ? REAL_VIDEOS[style as VideoStyle] 
-    : REAL_VIDEOS.default;
-}
-
-// Export API functions
-export const generateVideo = async (params: VideoGenerationParams): Promise<string> => {
-  // In a real implementation, this would call the Step-Video-TI2V backend API
-  // but for the demo, we use a mock implementation with real video results
-  console.log('Using mock implementation with real video playback');
-  return mockVideoGeneration(params);
-};
-
-export const getGenerationStatus = async (id: string): Promise<GenerationStatus> => {
-  // In a real implementation, this would query the backend API
-  // but for the demo, we use a mock implementation
-  return mockGetGenerationStatus(id);
+// Reset all statuses (for testing)
+export const resetGenerationStatuses = (): void => {
+  if (typeof window === 'undefined') return;
+  sessionStorage.removeItem('videoGenerationStatuses');
 };
 
 // Function for connecting to distributed network
