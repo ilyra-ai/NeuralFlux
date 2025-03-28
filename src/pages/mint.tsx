@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import { useWallet } from '@/web3/WalletContext';
+import { useWallet } from '@/web3/WalletProvider';
 import Link from 'next/link';
 
 // Mock NFT minting function
