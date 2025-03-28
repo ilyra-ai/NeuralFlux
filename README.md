@@ -133,7 +133,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## Contact Us
 
-- Website: [neuralflux.io](https://neuralflux.xyz)
-- Email: info@neuralflux.io
+- Website: [neuralflux.xyz](https://neuralflux.xyz)
+- Email: info@neuralflux.xyz
 - Twitter: [@NeuralFlux](https://twitter.com/NeuralFlux)
 - Discord: [NeuralFlux Community](https://discord.gg/neuralflux)
