@@ -1,7 +1,15 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useWallet } from '@/web3/WalletProvider';
 
-const WalletDropdown = () => {
+interface WalletDropdownProps {
+  minimal?: boolean;
+  className?: string;
+}
+
+const WalletDropdown: React.FC<WalletDropdownProps> = ({ 
+  minimal = false, 
+  className = "" 
+}) => {
   const { publicKey, disconnectWallet } = useWallet();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -26,9 +34,9 @@ const WalletDropdown = () => {
   }, []);
 
   return (
-    <div className="relative" ref={dropdownRef}>
+    <div className={`relative ${className}`} ref={dropdownRef}>
       <button
-        className="bg-purple-100 hover:bg-purple-200 dark:bg-purple-900/30 dark:hover:bg-purple-900/50 rounded-lg py-2 px-4 text-purple-700 dark:text-purple-300 font-medium flex items-center"
+        className={`flex items-center ${minimal ? 'text-sm' : 'text-base font-medium'} bg-purple-100 hover:bg-purple-200 dark:bg-purple-900/30 dark:hover:bg-purple-900/50 rounded-lg py-2 px-4 text-purple-700 dark:text-purple-300`}
         onClick={() => setIsOpen(!isOpen)}
       >
         <span className="mr-2">🦊</span>
