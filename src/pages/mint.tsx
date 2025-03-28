@@ -23,7 +23,7 @@ const mockMintNFT = async (
 
 export default function MintPage() {
   const router = useRouter();
-  const { connected, connect, publicKey } = useWallet();
+  const { connected, connectWallet, publicKey } = useWallet();
   const [videoUrl, setVideoUrl] = useState<string>('');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -91,7 +91,7 @@ export default function MintPage() {
         {!connected ? (
           <div className="bg-blue-50 dark:bg-blue-900/20 p-6 rounded-lg mb-8 text-center">
             <p className="mb-4">Please connect your wallet to mint NFTs</p>
-            <button onClick={connect} className="btn-primary">
+            <button onClick={connectWallet} className="btn-primary">
               Connect Wallet
             </button>
           </div>
