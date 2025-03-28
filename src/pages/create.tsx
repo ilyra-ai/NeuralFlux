@@ -295,13 +295,15 @@ export default function CreatePage() {
                         ></video>
                       </div>
                       
-                      <div className="flex justify-center">
+                      <div className="flex flex-col items-center">
                         <button
-                          onClick={handleMintNFT}
-                          className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-6 rounded-lg"
+                          disabled={true}
+                          className="bg-gray-400 text-white font-bold py-2 px-6 rounded-lg relative cursor-not-allowed"
                         >
                           Mint as NFT
+                          <span className="absolute -top-2 -right-2 bg-yellow-500 text-xs text-white px-2 py-1 rounded-full animate-pulse">Coming Soon</span>
                         </button>
+                        <p className="text-xs text-gray-500 mt-2">NFT minting feature will be available soon!</p>
                       </div>
                     </div>
                   )}

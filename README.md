@@ -1,113 +1,139 @@
+<p align="center">
+  <img src="public/neuralflux-logo-final.png" alt="NeuralFlux Logo" width="300"/>
+</p>
+
+
 # NeuralFlux: Web3 AI Video Generation Ecosystem
+
 
 NeuralFlux is an innovative platform that combines cutting-edge AI video generation technology with Web3 economic models, enabling creators to create and monetize in unprecedented ways.
 
 ## Project Overview
 
-NeuralFlux is built on Step-Video-TI2V technology and is a decentralized AI video generation ecosystem designed to revolutionize how creators generate, distribute, and capture value from AI video content.
+NeuralFlux integrates AI video generation technology with the Solana blockchain, creating a complete decentralized content generation and trading ecosystem. The platform allows creators to create video content using state-of-the-art AI technology and mint and trade it in the form of NFTs.
 
-### Core Features
+## Technical Architecture
 
-- **AI Video Generation**: Create high-quality videos from text descriptions and reference images using Step-Video-TI2V technology
-- **NFT Video Marketplace**: Mint, buy, sell, and collect unique AI-generated video NFTs
-- **Web3 Integration**: Enable decentralized value exchange through the $FLUX token system
-- **Creator DAO**: Participate in project governance and decision-making, earn rewards through staking
+<p align="center">
+  <img src="public/tech-architecture.svg" alt="NeuralFlux Technical Architecture" width="800"/>
+</p>
 
-## Technology Stack
+```
+Technical Architecture Description:
 
-- Frontend: React, Next.js, TypeScript, TailwindCSS
-- Web3: Solana, @solana/web3.js, @solana/wallet-adapter
-- AI: Based on Step-Video-TI2V model
+Frontend Layer → API Layer → Blockchain Layer → Storage Layer
 
-## Quick Start
-
-### Requirements
-
-- Node.js 16+
-- npm or yarn
-
-### Installation
-
-```bash
-# Clone repository
-git clone https://github.com/yourusername/neuralflux.git
-cd neuralflux
-
-# Install dependencies
-npm install
-# or
-yarn install
+1. User Interface (Next.js + React)
+2. API Services (AI Video Generation, NFT Metadata)
+3. Blockchain Interaction (Solana Programs)
+4. Decentralized Storage (Arweave/IPFS)
 ```
 
-### Development
+## User Flow
+
+<p align="center">
+  <img src="public/user-flow.svg" alt="NeuralFlux User Flow" width="800"/>
+</p>
+
+```
+Main Process:
+
+1. Connect Wallet
+2. Create AI Video
+3. Mint NFT
+4. List on Marketplace
+5. Trade and Revenue Distribution
+```
+
+## Core Features
+
+- **AI Video Generation**: Generate high-quality video content based on text prompts
+- **NFT Minting**: Mint generated videos as NFTs on the Solana blockchain
+- **Web3 Wallet Integration**: Seamless connection with Solana wallets like Phantom
+- **NFT Marketplace**: Browse, buy, and sell video NFTs
+- **DAO Governance**: Community participation in platform decisions and development
+- **Token Economy**: Token-based incentive mechanisms and value distribution
+
+## Tech Stack
+
+- **Frontend**: Next.js, React, TypeScript, TailwindCSS
+- **Blockchain**: Solana, Anchor Framework
+- **AI Services**: Custom video generation API
+- **Wallet Integration**: Phantom wallet
+- **Deployment**: Vercel
+
+## Component Architecture
+
+<p align="center">
+  <img src="public/component-diagram.svg" alt="NeuralFlux Component Architecture" width="800"/>
+</p>
+
+```
+Component Architecture Description:
+
+- Top Level: Application Entry Components
+- Page Layer: Functional Page Components
+- Core Component Layer: Business Logic Components
+- Utility Layer: Common Function Libraries
+```
+
+## Installation Guide
+
+1. **Clone Repository**
+
+```bash
+git clone https://github.com/your-organization/neuralflux.git
+cd neuralflux
+```
+
+2. **Install Dependencies**
+
+```bash
+npm install
+```
+
+3. **Environment Configuration**
+
+Create a `.env.local` file and add the necessary environment variables:
+
+```
+NEXT_PUBLIC_SOLANA_RPC_HOST=https://api.mainnet-beta.solana.com
+NEXT_PUBLIC_ENDPOINT=your-api-endpoint
+```
+
+4. **Start Development Server**
 
 ```bash
 npm run dev
-# or
-yarn dev
 ```
 
-Visit `http://localhost:3000` to view the application.
+The application will run at `http://localhost:3000`.
 
-## MVP Features
+## Usage Guide
 
-The current MVP version implements the following core features:
+1. **Connect Wallet**: Click the "Connect Wallet" button in the navigation bar and select Phantom wallet to connect.
+2. **Create Video**: Visit the creation page, enter a descriptive prompt, and generate an AI video.
+3. **Mint NFT**: Mint an NFT for your video work, setting quantity and price.
+4. **Browse Marketplace**: Explore NFT works by other creators and purchase content of interest.
+5. **Participate in DAO**: Use your tokens to participate in platform governance voting.
 
-1. **Video Generation Interface**: Generate AI videos from text and images
-2. **Basic Wallet Integration**: Solana wallet connection functionality
-3. **NFT Minting**: Mint generated videos as NFTs
-4. **Simple Marketplace**: Browse and filter video NFTs
-5. **DAO Interface**: Stake tokens and participate in governance proposals
+## Contribution Guidelines
 
-## Roadmap
+Contributions to the NeuralFlux project are welcome! Please follow these steps:
 
-See the `ROADMAP.md` file for the complete development plan.
-
-## Contributing
-
-Contributions of code, issue reports, or new feature suggestions are welcome! Please refer to `CONTRIBUTING.md` for more information.
+1. Fork this repository
+2. Create your feature branch: `git checkout -b feature/amazing-feature`
+3. Commit your changes: `git commit -m 'Add some amazing feature'`
+4. Push to the branch: `git push origin feature/amazing-feature`
+5. Submit a Pull Request
 
 ## License
 
-MIT
+This project is licensed under the MIT License - see the LICENSE file for details.
 
-## Recent Updates
+## Contact Us
 
-### DAO Page Wallet Connection Fix
-- Fixed the DAO page to properly connect with Phantom wallet
-- Integrated Solana Wallet Adapter for seamless wallet connectivity
-- Removed unnecessary balance display and staking functionality
-- Improved user interface for better wallet interaction
-
-## Features
-- AI video generation based on text prompts
-- NFT minting of AI-generated videos
-- Marketplace for trading video NFTs
-- DAO governance for platform decisions
-- FLUX token for platform utility and governance
-
-## Technology Stack
-- Next.js for frontend
-- Tailwind CSS for styling
-- Solana blockchain integration
-- Phantom wallet connectivity
-- AI model integration
-
-## Getting Started
-
-```bash
-# Install dependencies
-npm install
-
-# Run the development server
-npm run dev
-```
-
-Open [http://localhost:3003](http://localhost:3003) in your browser to see the application.
-
-## Project Structure
-- `/src/pages` - Main application pages
-- `/src/components` - Reusable UI components
-- `/src/web3` - Blockchain integration 
-- `/src/api` - API routes and services
-- `/public` - Static assets 
+- Website: [neuralflux.io](https://neuralflux.xyz)
+- Email: info@neuralflux.io
+- Twitter: [@NeuralFlux](https://twitter.com/NeuralFlux)
+- Discord: [NeuralFlux Community](https://discord.gg/neuralflux)
