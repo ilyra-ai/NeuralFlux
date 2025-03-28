@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="public/neuralflux-logo-final.png" alt="NeuralFlux Logo" width="300"/>
+  <img src="public/neuralflux-logo.png" alt="NeuralFlux Logo" width="300"/>
 </p>
 
 
