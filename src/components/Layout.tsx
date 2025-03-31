@@ -39,7 +39,7 @@ const Layout: React.FC<LayoutProps> = ({ children, title = 'NeuralFlux AI Video 
               Marketplace
             </Link>
             <Link href="/dao" className="hover:text-blue-400 transition-colors">
-              DAO Governance
+              DAO
             </Link>
           </nav>
         </div>

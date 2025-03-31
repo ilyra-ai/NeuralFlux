@@ -195,8 +195,9 @@ export default function CreatePage() {
                   value={prompt}
                   onChange={(e) => setPrompt(e.target.value)}
                   placeholder="Describe the video you want to generate..."
-                  className="w-full p-3 border rounded-lg"
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 shadow-sm resize-none font-medium text-base leading-relaxed"
                   rows={4}
+                  style={{ WebkitAppearance: 'none' }}
                 ></textarea>
                 <p className="text-xs text-gray-500 mt-1">
                   Please be specific about the subject, setting and action in the video
@@ -243,7 +244,8 @@ export default function CreatePage() {
                   <select
                     value={style}
                     onChange={(e) => setStyle(e.target.value)}
-                    className="w-full p-2 border rounded-lg"
+                    className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 shadow-sm font-medium text-base"
+                    style={{ WebkitAppearance: 'none', appearance: 'menulist', height: '42px' }}
                   >
                     <option value="realistic">Realistic</option>
                     <option value="anime">Anime</option>
