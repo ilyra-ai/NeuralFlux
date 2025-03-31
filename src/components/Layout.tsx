@@ -14,7 +14,9 @@ const Layout: React.FC<LayoutProps> = ({ children, title = 'NeuralFlux AI Video 
       <Head>
         <title>{title}</title>
         <meta name="description" content="Web3 Innovation Ecosystem for AI Video Generation" />
-        <link rel="icon" href="/favicon.ico" />
+        <link rel="icon" href="/neuralflux-logo.svg" type="image/svg+xml" />
+        <link rel="apple-touch-icon" href="/neuralflux-logo.svg" />
+        <meta name="theme-color" content="#7C3AED" />
       </Head>
 
       <header className="bg-gray-900 text-white p-4 shadow-md">
