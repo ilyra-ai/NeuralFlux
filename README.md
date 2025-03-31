@@ -135,5 +135,4 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 - Website: [neuralflux.xyz](https://neuralflux.xyz)
 - Email: info@neuralflux.xyz
-- Twitter: [@NeuralFlux](https://twitter.com/NeuralFlux)
-- Discord: [NeuralFlux Community](https://discord.gg/neuralflux)
+- Twitter: [@NeuralFluxAi](https://twitter.com/NeuralFluxAi)
