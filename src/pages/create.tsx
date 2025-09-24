@@ -1,5 +1,7 @@
-import { useEffect, useState } from 'react';
 import type { ChangeEvent } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { useWallet } from '@/web3/WalletProvider';
+import { generateVideo, getGenerationStatus, VideoGenerationParams, GenerationStatus } from '@/api/videoGeneration';
 import Layout from '@/components/Layout';
 import WalletDropdown from '@/components/WalletDropdown';
 import { useWallet } from '@/web3/WalletProvider';
@@ -27,6 +29,9 @@ export default function CreatePage() {
   const [modelsLoading, setModelsLoading] = useState(false);
   const [modelError, setModelError] = useState<string | null>(null);
 
+  
+  const statusIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  
   useEffect(() => {
     let cancelled = false;
 
@@ -80,6 +85,8 @@ export default function CreatePage() {
     }
     if (!selectedModel) {
       setError('Select a Hugging Face model to continue');
+    if (prompt.length < 5) {
+      setError('Prompt description is too short, please enter at least 5 characters');
       return;
     }
 
@@ -146,6 +153,7 @@ export default function CreatePage() {
     );
   };
 
+  // Render wallet connection section
   return (
     <Layout title="NeuralFlux - Create AI Video">
       <div className="max-w-4xl mx-auto">
@@ -205,10 +213,19 @@ export default function CreatePage() {
                 onChange={(e) => setPrompt(e.target.value)}
                 placeholder="Describe the video you want to generate..."
                 className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 shadow-sm resize-none font-medium text-base leading-relaxed"
+
                 rows={5}
                 style={{ WebkitAppearance: 'none' }}
               ></textarea>
               <p className="text-xs text-gray-500 mt-1">Add as much detail as you need. The video length can extend up to five minutes.</p>
+
+                rows={4}
+                style={{ WebkitAppearance: 'none' }}
+              ></textarea>
+              <p className="text-xs text-gray-500 mt-1">
+                Please be specific about the subject, setting and action in the video
+              </p>
+
             </div>
 
             <div className="mb-4">
@@ -216,8 +233,20 @@ export default function CreatePage() {
               <div className="border-dashed border-2 border-gray-300 rounded-lg p-4 text-center">
                 {referenceImage ? (
                   <div className="mb-2">
+
                     <img src={referenceImage} alt="Reference" className="h-32 mx-auto object-contain" />
                     <button onClick={() => setReferenceImage(null)} className="text-red-600 text-sm mt-2">
+
+                    <img
+                      src={referenceImage}
+                      alt="Reference"
+                      className="h-32 mx-auto object-contain"
+                    />
+                    <button
+                      onClick={() => setReferenceImage(null)}
+                      className="text-red-600 text-sm mt-2"
+                    >
+
                       Remove
                     </button>
                   </div>
@@ -226,12 +255,22 @@ export default function CreatePage() {
                     <p className="mb-2">Drag and drop an image or click to browse</p>
                     <label className="cursor-pointer bg-gray-200 hover:bg-gray-300 px-3 py-1 rounded-lg">
                       Upload Image
+
                       <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
+
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleImageUpload}
+                      />
+
                     </label>
                   </div>
                 )}
               </div>
             </div>
+
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
               <div>
@@ -302,13 +341,42 @@ export default function CreatePage() {
 
             {error && (
               <div className="bg-red-50 text-red-500 p-3 rounded-lg mb-4">{error}</div>
+
+            <div className="grid grid-cols-1 gap-4 mb-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">Video Style</label>
+                <select
+                  value={style}
+                  onChange={(e) => setStyle(e.target.value)}
+                  className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 shadow-sm font-medium text-base"
+                  style={{ WebkitAppearance: 'none', appearance: 'menulist', height: '42px' }}
+                >
+                  <option value="realistic">Realistic</option>
+                  <option value="anime">Anime</option>
+                  <option value="cinematic">Cinematic</option>
+                  <option value="3d">3D Animation</option>
+                </select>
+              </div>
+            </div>
+
+            {error && (
+              <div className="bg-red-50 text-red-500 p-3 rounded-lg mb-4">
+                {error}
+              </div>
+
             )}
 
             <button
               onClick={handleGenerate}
+
               disabled={isGenerating || !prompt.trim() || !selectedModel}
               className={`w-full py-3 font-bold rounded-lg ${
                 isGenerating || !prompt.trim() || !selectedModel
+
+              disabled={isGenerating || prompt.length < 5}
+              className={`w-full py-3 font-bold rounded-lg ${
+                isGenerating || prompt.length < 5
+
                   ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                   : 'bg-blue-600 hover:bg-blue-700 text-white'
               }`}
@@ -316,10 +384,12 @@ export default function CreatePage() {
               {isGenerating ? 'Generating...' : 'Generate Video'}
             </button>
 
+
             <div className="mt-4">
               <label className="block text-sm font-medium mb-2">Select a Hugging Face model</label>
               {renderModelList()}
             </div>
+
           </div>
 
           <div className="bg-white rounded-xl shadow-md p-6">
@@ -330,6 +400,13 @@ export default function CreatePage() {
                 <div className="mb-4">
                   <video
                     src={videoResult.videoUrl}
+
+            {status?.status === 'completed' && status?.result ? (
+              <div>
+                <div className="mb-4">
+                  <video
+                    src={status.result}
+
                     controls
                     className="w-full rounded-lg"
                     autoPlay
@@ -344,12 +421,17 @@ export default function CreatePage() {
                     onClick={handleMintNFT}
                     className="bg-gray-400 text-white py-2 px-4 rounded-lg font-bold relative cursor-not-allowed"
                     disabled
+
+                    disabled={true}
+                    className="bg-gray-400 text-white py-2 px-4 rounded-lg font-bold relative cursor-not-allowed"
+
                   >
                     Mint as NFT
                     <span className="absolute -top-2 -right-2 bg-yellow-500 text-xs text-white px-2 py-1 rounded-full">Coming Soon</span>
                   </button>
                 </div>
               </div>
+
             ) : isGenerating ? (
               <div className="text-center py-8">
                 <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
@@ -362,6 +444,45 @@ export default function CreatePage() {
                   <p className="text-gray-500 mb-2">No video results yet</p>
                   <p className="text-sm text-gray-400">Enter a description, pick a model, and click "Generate Video"</p>
                 </div>
+
+            ) : status?.status === 'failed' ? (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+                <div className="text-red-500 text-lg mb-3">⚠️ Generation Failed</div>
+                <p className="text-gray-700 mb-4">{status.error || 'Unable to generate a matching video. Please try again.'}</p>
+                <button
+                  onClick={handleGenerate}
+                  className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg"
+                >
+                  Try Again
+                </button>
+              </div>
+            ) : (
+              <div>
+                {isGenerating ? (
+                  <div className="text-center py-8">
+                    <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                    <p className="font-medium">Generating matching video...</p>
+                    <p className="text-sm text-gray-500 mt-2">
+                      {status?.progress && status.progress > 90
+                        ? "If no match found in 10 seconds, will use default style video..."
+                        : "Generating relevant video from Step-Video-TI2V open source library..."}
+                    </p>
+                    <div className="mt-4 bg-gray-100 rounded-full h-2.5 dark:bg-gray-700">
+                      <div className="bg-blue-600 h-2.5 rounded-full" style={{ width: status?.progress ? `${status.progress}%` : '0%' }}></div>
+                    </div>
+                    <p className="text-sm text-gray-500 mt-2">
+                      {status?.progress ? `${Math.round(status.progress)}%` : '0%'} completed
+                    </p>
+                  </div>
+                ) : (
+                  <div className="bg-gray-100 h-64 rounded-lg flex items-center justify-center">
+                    <div className="text-center">
+                      <p className="text-gray-500 mb-2">No video results yet</p>
+                      <p className="text-sm text-gray-400">Enter a description and click "Generate Video" button</p>
+                    </div>
+                  </div>
+                )}
+
               </div>
             )}
           </div>
