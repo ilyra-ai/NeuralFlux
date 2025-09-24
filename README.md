@@ -111,8 +111,8 @@ The application will run at `http://localhost:3000`.
 
 ## Usage Guide
 
-1. **Connect Wallet**: Click the "Connect Wallet" button in the navigation bar and select Phantom wallet to connect.
-2. **Create Video**: Visit the creation page, enter a descriptive prompt, and generate an AI video.
+1. **Connect Wallet (Optional)**: Click the "Connect Wallet" button in the navigation bar and select Phantom wallet if you want to access blockchain-powered features.
+2. **Create Video**: Visit the creation page, enter a descriptive prompt, and generate an AI video without needing a wallet connection.
 3. **Mint NFT**: Mint an NFT for your video work, setting quantity and price.
 4. **Browse Marketplace**: Explore NFT works by other creators and purchase content of interest.
 5. **Participate in DAO**: Use your tokens to participate in platform governance voting.
